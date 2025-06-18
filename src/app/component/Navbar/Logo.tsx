@@ -23,7 +23,7 @@ const Logo = () => {
 
     <Image
       alt="Logo"
-      src="/images/logo.png"
+      src="/Images/logo.png"
       width={136}
       height={40}
       style={{
