@@ -1,0 +1,271 @@
+
+
+html,
+body,
+:root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* ✅ Now your own CSS starts here */
+
+.menu-button {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.menu-button:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 768px) {
+  .menu-button {
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+.menu-dropdown {
+  width: 40vw;
+}
+
+@media (min-width: 768px) {
+  .menu-dropdown {
+    width: 75vw;
+  }
+}
+
+.modal-container {
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  .modal-container {
+    height: auto;
+  }
+}
+
+.floating-label {
+  pointer-events: none;
+}
+
+.focused .floating-label {
+  transform: translateY(-0.75rem) scale(0.85);
+  color: #4b5563;
+}
+
+
+.grid-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem; /* gap-3 = 12px */
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .grid-wrapper {
+    grid-template-columns: repeat(2, 1fr); /* md:grid-cols-2 */
+  }
+}
+
+.modal-content {
+  max-width: 700px; /* You can try 750px or more if needed */
+  width: 90%;
+  margin: 0 auto;
+}
+
+
+.leaflet-bottom,
+.leaflet-control,
+.leaflet-pane,
+.leaflet-top {
+  z-index: 0 !important;
+}
+
+/* Default: 1 column */
+.responsive-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+/* sm:grid-cols-2 */
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* md:grid-cols-3 */
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* lg:grid-cols-4 */
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* xl:grid-cols-5 */
+@media (min-width: 1280px) {
+  .responsive-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* 2xl:grid-cols-6 */
+@media (min-width: 1536px) {
+  .responsive-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+
+
+/* ─────────────────────────────────────────────
+   Listing-details responsive grid
+   (Tailwind: grid grid-cols-1 md:grid-cols-7 md:gap-10 mt-6)
+   ───────────────────────────────────────────── */
+.listing-details-grid {
+  /* grid  +  grid-cols-1  +  mt-6 */
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  margin-top: 1.5rem;         /* 6 × 0.25rem */
+}
+
+/* md:grid-cols-7  +  md:gap-10  (Tailwind “md” = 768 px) */
+@media (min-width: 768px) {
+  .listing-details-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2.5rem;              /* 10 × 0.25rem */
+  }
+}
+
+
+.responsive-order-column {
+  order: 1;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-order-column {
+    order: 9999;           /* Tailwind's 'order-last' is very high */
+    grid-column: span 3 / span 3;
+  }
+}
+
+.rdrMonth {
+  width: 97% !important;
+
+}
+
+.rdrCalendarWrapper {
+  width: 97% !important;
+  font-size: 14px !important;
+  
+}
+
+.rdrDateDisplayWrapper {
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* Line separating button (if visible) */
+.rdrDefinedRangesWrapper {
+  border-right: 1px solid #e5e7eb !important;
+}
+
+hr {
+  border-color: #e5e7eb !important; /* Tailwind's neutral-200 */
+}
+
+/* ---  Trips page responsive grid  --- */
+.my-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));   /* base: 1 col   */
+  gap: 2rem;                                          /* gap-8         */
+}
+
+/* sm:grid-cols-2 */
+@media (min-width: 640px) {
+  .my-responsive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* md:grid-cols-3 */
+@media (min-width: 768px) {
+  .my-responsive-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* lg:grid-cols-4 */
+@media (min-width: 1024px) {
+  .my-responsive-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* xl:grid-cols-5 */
+@media (min-width: 1280px) {
+  .my-responsive-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* 2xl:grid-cols-6 */
+@media (min-width: 1536px) {
+  .my-responsive-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+
+
+/* Responsive grid layout for reservations */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 1536px) {
+  .responsive-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
