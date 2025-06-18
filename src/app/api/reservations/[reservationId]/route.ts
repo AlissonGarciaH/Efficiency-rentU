@@ -1,35 +1,33 @@
+// src/app/api/reservations/[reservationId]/route.ts
 import { NextResponse } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/app/libs/prismadb";
 
-interface IParams {
-  reservationId?: string;
-}
+// Next 15: `context.params` is a Promise
+type Context = {
+  params: Promise<{ reservationId: string }>;
+};
 
 export async function DELETE(
-  request: Request,
-  context: { params: IParams }
+  _request: Request,
+  context: Context
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser) return NextResponse.error();
 
-  // ✅ Await the params if they come from a dynamic route
-  const params = await context.params;
-  const { reservationId } = params;
+  // ✓ Await the params object
+  const { reservationId } = await context.params;
+  if (!reservationId) throw new Error("Invalid ID");
 
-  if (!reservationId || typeof reservationId !== "string") {
-    throw new Error("Invalid ID");
-  }
-
-  const reservation = await prisma.reservation.deleteMany({
+  const deleted = await prisma.reservation.deleteMany({
     where: {
       id: reservationId,
       OR: [
         { userId: currentUser.id },
-        { listing: { userId: currentUser.id } }
-      ]
-    }
+        { listing: { userId: currentUser.id } },
+      ],
+    },
   });
 
-  return NextResponse.json(reservation);
+  return NextResponse.json(deleted);
 }

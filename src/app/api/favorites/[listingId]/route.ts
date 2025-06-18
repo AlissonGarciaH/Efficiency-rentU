@@ -1,64 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
+import prisma from '@/app/libs/prismadb'
+import getCurrentUser from '@/app/actions/getCurrentUser'
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/app/libs/prismadb";
+type Ctx = { params: Promise<{ listingId: string }> }
 
-// POST /api/favorites/[listingId]
-export async function POST(
-  request: Request,
-  { params }: { params: { listingId: string } }
-) {
-  const currentUser = await getCurrentUser();
+export async function POST(_req: Request, ctx: Ctx) {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.error()
 
-  if (!currentUser) {
-    return NextResponse.error();
-  }
+  const { listingId } = await ctx.params
+  if (!listingId) throw new Error('Invalid ID')
 
-  const { listingId } = params;
-
-  const favoriteIds = [...(currentUser.favoriteIds || [])];
-
-  if (!favoriteIds.includes(listingId)) {
-    favoriteIds.push(listingId);
-  }
+  const favs = new Set(currentUser.favoriteIds ?? [])
+  favs.add(listingId)
 
   const user = await prisma.user.update({
-    where: {
-      id: currentUser.id
-    },
-    data: {
-      favoriteIds
-    }
-  });
+    where: { id: currentUser.id },
+    data: { favoriteIds: [...favs] },
+  })
 
-  return NextResponse.json(user);
+  return NextResponse.json(user)
 }
 
-// DELETE /api/favorites/[listingId]
-export async function DELETE(
-  request: Request,
-  { params }: { params: { listingId: string } }
-) {
-  const currentUser = await getCurrentUser();
+export async function DELETE(_req: Request, ctx: Ctx) {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.error()
 
-  if (!currentUser) {
-    return NextResponse.error();
-  }
-
-  const { listingId } = params;
-
-  let favoriteIds = [...(currentUser.favoriteIds || [])];
-
-  favoriteIds = favoriteIds.filter((id) => id !== listingId);
+  const { listingId } = await ctx.params
+  if (!listingId) throw new Error('Invalid ID')
 
   const user = await prisma.user.update({
-    where: {
-      id: currentUser.id
-    },
+    where: { id: currentUser.id },
     data: {
-      favoriteIds
-    }
-  });
+      favoriteIds: (currentUser.favoriteIds ?? []).filter(id => id !== listingId),
+    },
+  })
 
-  return NextResponse.json(user);
+  return NextResponse.json(user)
 }
