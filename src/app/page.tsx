@@ -36,26 +36,32 @@ export default async function Home({ searchParams }: HomeContext) {
   return (
     <ClientOnly>
       <Container>
-        <div
-          className="responsive-grid"
+        <div 
           style={{
-            paddingTop: "5rem",
-            paddingLeft: 0,
-            paddingRight: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "1rem",
-            justifyContent: "center",
+            paddingTop: '5rem',             // pt-24 (24 × 0.25rem)
+            paddingLeft: '0rem',         // ❌ remove horizontal padding
+            paddingRight: '0rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220x, 1fr))',
+            gap: '1rem',                     // gap-8 (8 × 0.25rem)
+            justifyContent: 'center'
           }}
+          className="responsive-grid"
         >
-          {listings.map((listing) => (
-            <ListingCard
+          {listings.map((listing) => {
+            return (
+              <ListingCard
+              currentUser={currentUser}
               key={listing.id}
               data={listing}
-              currentUser={currentUser}
-            />
-          ))}
+              />
+            )
+          })}
+
+          
+          
         </div>
+
       </Container>
     </ClientOnly>
   );
