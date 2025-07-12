@@ -1,68 +1,93 @@
-// src/app/page.tsx
-import getCurrentUser from "./actions/getCurrentUser";
-import getListings, { IListingsParams } from "./actions/getListings";
-import ClientOnly from "./component/ClientOnly";
-import Container from "./component/Container";
-import EmptyState from "./component/EmptyState";
-import ListingCard from "./component/listings/ListingCard";
-import type { SafeListing, SafeUser } from "@/app/types";
+'use client';
 
-/**
- * The App Router now passes `searchParams` **as a Promise**.
- * We must declare that and await it before reading.
- */
-type HomeContext = {
-  /** query-string filters (promise) */
-  searchParams: Promise<IListingsParams>;
-};
+import { useSession } from "next-auth/react";
+import useLoginModal from "@/app/hooks/useLoginModal";
 
-export default async function Home({ searchParams }: HomeContext) {
-  /* ---------- await query params ---------- */
-  const filters = await searchParams;
+export default function Home() {
+  const { data: session } = useSession();
+  const loginModal = useLoginModal();
 
-  const listings: SafeListing[] = await getListings(filters);
-  const currentUser: SafeUser | null = await getCurrentUser();
-
-  /* ---------- empty state ---------- */
-  if (!listings || listings.length === 0) {
-    return (
-      <ClientOnly>
-        <EmptyState showReset />
-      </ClientOnly>
-    );
-  }
-
-  /* ---------- page ---------- */
   return (
-    <ClientOnly>
-      <Container>
-        <div 
-          style={{
-            paddingTop: '5rem',             // pt-24 (24 × 0.25rem)
-            paddingLeft: '0rem',         // ❌ remove horizontal padding
-            paddingRight: '0rem',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220x, 1fr))',
-            gap: '1rem',                     // gap-8 (8 × 0.25rem)
-            justifyContent: 'center'
-          }}
-          className="responsive-grid"
-        >
-          {listings.map((listing) => {
-            return (
-              <ListingCard
-              currentUser={currentUser}
-              key={listing.id}
-              data={listing}
-              />
-            )
-          })}
-
-          
-          
-        </div>
-
-      </Container>
-    </ClientOnly>
+    <div
+      style={{
+        minHeight: "70vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1.5rem",
+        textAlign: "center",
+        flexDirection: "column",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {!session?.user ? (
+        <>
+          <h1
+            style={{
+              fontSize: "clamp(1.5rem, 5vw, 2rem)",
+              fontWeight: "bold",
+              marginBottom: "1rem",
+              lineHeight: 1.3,
+            }}
+          >
+            🎓✨ Find your perfect student home
+          </h1>
+          <p
+            style={{
+              fontSize: "clamp(1rem, 4vw, 1.1rem)",
+              color: "#444",
+              maxWidth: "90%",
+            }}
+          >
+            🔍 We&rsquo;re launching a smarter, friendlier way to connect students with trusted housing near campus.
+            <br />
+            🚀 Sign in now to join the waitlist and get first access when we go live!
+          </p>
+          <button
+            onClick={loginModal.onOpen}
+            style={{
+              marginTop: "1.5rem",
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#00C78C",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "1rem",
+              cursor: "pointer",
+              width: "100%",
+              maxWidth: "300px",
+            }}
+          >
+            🔑 Sign In to Join the Waitlist
+          </button>
+        </>
+      ) : (
+        <>
+          <h1
+            style={{
+              fontSize: "clamp(1.5rem, 5vw, 2rem)",
+              fontWeight: "bold",
+              marginBottom: "1rem",
+              lineHeight: 1.3,
+            }}
+          >
+            ✅ Welcome to the waitlist, {session.user.name || "student"}! 🎉
+          </h1>
+          <p
+            style={{
+              fontSize: "clamp(1rem, 4vw, 1.1rem)",
+              color: "#444",
+              maxWidth: "90%",
+            }}
+          >
+            📬 You&apos;re officially in! We&rsquo;ll notify you when your housing match is ready.
+            <br />
+            📅 Keep an eye on your inbox — great things are coming soon!
+          </p>
+        </>
+      )}
+    </div>
   );
 }

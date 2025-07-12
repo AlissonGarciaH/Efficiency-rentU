@@ -1,22 +1,18 @@
-// src/app/api/listings/[listingId]/route.ts
 import { NextResponse } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/app/libs/prismadb";
 
-// 👇 Correctly typed context object
-type Context = {
-  params: Promise<{ listingId: string }>;
-};
-
+// REMOVE ALL TYPE IMPORTS like RouteContext
+// Just define inline param type
 export async function DELETE(
   request: Request,
-  context: Context
+  { params }: { params: { listingId: string } }
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser) return NextResponse.error();
 
-  // ✅ Await context.params (required in Next.js 15)
-  const { listingId } = await context.params;
+  const { listingId } = params;
+
   if (!listingId || typeof listingId !== "string") {
     throw new Error("Invalid ID");
   }
@@ -31,4 +27,52 @@ export async function DELETE(
   return NextResponse.json(deleted);
 }
 
+export async function PUT(
+  request: Request,
+  { params }: { params: { listingId: string } }
+) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.error();
 
+  const { listingId } = params;
+  const body = await request.json();
+
+  const {
+    description,
+    guestCount,
+    roomCount,
+    bathroomCount,
+    universityName,
+    lat,
+    lng,
+    imageGallery = [],
+  } = body;
+
+  if (!listingId || typeof listingId !== "string") {
+    throw new Error("Invalid ID");
+  }
+
+  const existingListing = await prisma.listing.findUnique({
+    where: { id: listingId },
+  });
+
+  if (!existingListing || existingListing.userId !== currentUser.id) {
+    return new NextResponse("Unauthorized", { status: 403 });
+  }
+
+  const updatedListing = await prisma.listing.update({
+    where: { id: listingId },
+    data: {
+      description,
+      guestCount,
+      roomCount,
+      bathroomCount,
+      university: universityName,
+      lat,
+      lng,
+      imageGallery,
+    },
+  });
+
+  return NextResponse.json(updatedListing);
+}

@@ -269,3 +269,31 @@ hr {
     grid-template-columns: repeat(6, 1fr);
   }
 }
+
+.chat-container {
+  max-height: 400px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+.messages {
+  overflow-y: scroll;
+  height: 300px;
+}
+.message {
+  padding: 5px 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+}
+.sent {
+  background: #e0ffe0;
+  align-self: flex-end;
+}
+.received {
+  background: #f0f0f0;
+  align-self: flex-start;
+}
+.input-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}

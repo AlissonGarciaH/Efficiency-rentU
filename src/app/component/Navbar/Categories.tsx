@@ -1,122 +1,78 @@
 'use client';
 
-import { TbBeach, TbMountain, TbPool } from "react-icons/tb";
+import {
+  GiHouse,
+  GiCampingTent,
+  GiModernCity,
+  GiDogHouse,
+} from 'react-icons/gi';
+import { MdApartment, MdOutlineBedroomChild } from 'react-icons/md';
+import { FaPersonWalking } from 'react-icons/fa6';
 import Container from "../Container";
-import { GiBarn, GiBoatFishing, GiCactus, GiCastle, GiCaveEntrance, GiForest, GiIsland, GiWindmill } from "react-icons/gi";
-import { MdOutlineVilla } from "react-icons/md";
 import CategoryBox from "../CategoryBox";
 import { usePathname, useSearchParams } from "next/navigation";
-import { FaSkiing } from "react-icons/fa";
-import { BsSnow } from "react-icons/bs";
-import { IoDiamond } from "react-icons/io5";
+import { FaHome } from "react-icons/fa";
 
-export const categories =[
-    {
-        label: 'Beach',
-        icon: TbBeach,
-        description: 'This property is close to the beach!',
-    },
+export const categories = [
+  {
+    label: "Walking Distance from Campus",
+    icon: FaPersonWalking,
+    description: "Just a short walk from campus!",
+  },
+  {
+    label: "Studio",
+    icon: MdOutlineBedroomChild,
+    description: "Compact, all-in-one living space.",
+  },
+  {
+    label: "Tiny House",
+    icon: GiHouse,
+    description: "Efficient small home living!",
+  },
+  {
+    label: "Shared Apartment",
+    icon: MdApartment,
+    description: "You’ll be sharing with other students.",
+  },
+  {
+    label: "Shared House",  // ✅ New
+    icon: FaHome,
+    description: "You’ll share this house with others.",
+  },
+  {
+    label: "Private Apartment",
+    icon: GiModernCity,
+    description: "A private place just for you.",
+  },
+  {
+    label: "Private House", // ✅ New
+    icon: FaHome,
+    description: "An entire house just for you.",
+  },
 
-    {
-        label: 'Windmills',
-        icon: GiWindmill,
-        description: 'This property has windmills!',
-    },
-
-    {
-        label: 'Modern',
-        icon: MdOutlineVilla,
-        description: 'This property is modern!',
-    },
-
-    {
-        label: 'Countryside',
-        icon: TbMountain,
-        description: 'This property is in the contryside!',
-    },
-
-    {
-        label: 'Pools',
-        icon: TbPool,
-        description: 'This property has a pool!',
-    },
-
-    {
-        label: 'Islands',
-        icon: GiIsland,
-        description: 'This property is on an Island!',
-    },
-
-    {
-        label: 'Lake',
-        icon: GiBoatFishing,
-        description: 'This property is modern!',
-    },
-
-    {
-        label: 'Skiing',
-        icon: FaSkiing,
-        description: 'This property has skiing activities!',
-    },
-
-    {
-        label: 'Castle',
-        icon: GiCastle,
-        description: 'This property is in a Castle!',
-    },
-
-    {
-        label: 'Camping',
-        icon: GiForest,
-        description: 'This property has camping activities!',
-    },
-
-    {
-        label: 'Artic',
-        icon: BsSnow,
-        description: 'This property is the Artic!',
-    },
-
-    {
-        label: 'Cave',
-        icon: GiCaveEntrance,
-        description: 'This property is in a cave!',
-    },
-
-    {
-        label: 'Desert',
-        icon: GiCactus,
-        description: 'This property is the desert!',
-    },
-
-    {
-        label: 'Barns',
-        icon: GiBarn,
-        description: 'This property is the barn!',
-    },
-
-    {
-        label: 'Lux',
-        icon: IoDiamond,
-        description: 'This property is luxurious!',
-    },
-]
+  {
+    label: "Fully Furnished",
+    icon: GiCampingTent,
+    description: "Move-in ready with all furniture.",
+  },
+  {
+    label: "Pet Friendly",
+    icon: GiDogHouse,
+    description: "Bring your furry friend!",
+  },
+];
 
 const Categories = () => {
-    const params = useSearchParams();
-    const category = params?.get('category');
-    const pathname = usePathname();
+  const params = useSearchParams();
+  const category = params?.get('category');
+  const pathname = usePathname();
 
-    const isMainPage = pathname === '/';
+  const isMainPage = pathname === '/';
+  if (!isMainPage) return null;
 
-    if (!isMainPage) {
-    return null;
-    };
-
-
-    return (
+  return (
     <div>
-    <Container>
+      <Container>
         <div
           style={{
             paddingTop: '1rem',
@@ -124,23 +80,21 @@ const Categories = () => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            overflowX: 'auto'
+            overflowX: 'auto',
           }}
         >
-          
           {categories.map((item) => (
             <CategoryBox
-            key={item.label}
-            label={item.label}
-            selected={category === item.label}
-            icon={item.icon}
+              key={item.label}
+              label={item.label}
+              selected={category === item.label}
+              icon={item.icon}
             />
           ))}
         </div>
-
-    </Container>
+      </Container>
     </div>
-    );
-}
+  );
+};
 
 export default Categories;

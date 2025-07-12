@@ -1,25 +1,34 @@
-// src/app/types/index.ts
-import { Listing, Reservation, User } from "@prisma/client";
+import { Listing, Reservation } from "@prisma/client";
 
 export type SafeListing = Omit<Listing, "createdAt"> & {
   createdAt: string;
+  university?: string | null;
+  imageGallery?: string[];
 };
 
 export type SafeReservation = Omit<
-   Reservation,
-   "createdAt" | "startDate" | "endDate" | "listing"
+  Reservation,
+  "createdAt" | "startMonth" | "endMonth" | "listing"
 > & {
+  id: string;
+  userId: string;
+  listingId: string;
+  startMonth: string;
+  endMonth: string;
+  totalPrice: number | null;
   createdAt: string;
-  startDate: string;
-  endDate: string;
   listing: SafeListing;
-}
+};
 
-export type SafeUser = Omit<
-  User,
-  "createdAt" | "updatedAt" | "emailVerified" | "hashedPassword"
-> & {
+// types/index.ts (or wherever SafeUser is)
+export type SafeUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  emailVerified: string | null; // 👈 add this line
+  image: string | null;
+  hashedPassword: string | null;
   createdAt: string;
   updatedAt: string;
-  emailVerified: string | null;
+  favoriteIds: string[];
 };

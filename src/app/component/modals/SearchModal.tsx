@@ -5,12 +5,10 @@ import useSearchModal from "@/app/hooks/useSearchModal";
 import Modal from "./Modal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { Range } from "react-date-range";
 import dynamic from "next/dynamic";
-import CountrySelect, { CountrySelectValue } from "../inputs/CountrySelect";
-import { formatISO } from "date-fns";
+import UniversitySelect, { UniversitySelectValue } from "../inputs/UniversitySelect";
 import Heading from "../Heading";
-import Calendar from "../inputs/Calendar";
+import MonthSelect from "../inputs/MonthSelelct";
 import Counter from "../inputs/Counter";
 
 enum STEPS {
@@ -24,16 +22,13 @@ const SearchModal = () => {
   const params = useSearchParams();
   const searchModal = useSearchModal();
 
-  const [location, setLocation] = useState<CountrySelectValue>();
+  const [location, setLocation] = useState<UniversitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
   const [guestCount, setGuestCount] = useState<number>(1);
   const [roomCount, setRoomCount] = useState<number>(1);
   const [bathroomCount, setBathroomCount] = useState<number>(1);
-  const [dateRange, setDateRange] = useState<Range>({
-    startDate: new Date(),
-    endDate: new Date(),
-    key: 'selection'
-  });
+  const [startMonth, setStartMonth] = useState('');
+const [endMonth, setEndMonth] = useState('');
 
   const Map = useMemo(() => dynamic(() => import('../Map'), {
     ssr: false,
@@ -60,19 +55,13 @@ const SearchModal = () => {
 
     const updatedQuery: StringifiableRecord = {
       ...currentQuery,
-      locationValue: location?.value ?? '',
+      university: location?.id ?? '',
       guestCount: guestCount.toString(),
       roomCount: roomCount.toString(),
-      bathroomCount: bathroomCount.toString()
+      bathroomCount: bathroomCount.toString(),
+      startMonth,
+      endMonth,
     };
-
-    if (dateRange.startDate) {
-      updatedQuery.startDate = formatISO(dateRange.startDate);
-    }
-
-    if (dateRange.endDate) {
-      updatedQuery.endDate = formatISO(dateRange.endDate);
-    }
 
     const url = qs.stringifyUrl({
       url: '/',
@@ -90,7 +79,8 @@ const SearchModal = () => {
     guestCount,
     roomCount,
     bathroomCount,
-    dateRange,
+    startMonth,
+    endMonth,
     onNext,
     params
   ]);
@@ -109,29 +99,25 @@ const SearchModal = () => {
         title="Where do you want to go"
         subtitle="Find the perfect location!"
       />
-      <CountrySelect
+      <UniversitySelect
         value={location}
-        onChange={(value) => setLocation(value as CountrySelectValue)}
+        onChange={(value) => setLocation(value)}
       />
       <hr />
-      <Map center={location?.latlng} />
+      <Map center={location ? [location.lat, location.lng] : undefined} />
     </div>
   );
 
   if (step === STEPS.DATE) {
-    bodyContent = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="When do you plan to go"
-          subtitle="Make sure everyone is free!"
-        />
-        <Calendar
-          value={dateRange}
-          onChange={(value) => setDateRange(value.selection)}
-        />
-      </div>
-    );
-  }
+  bodyContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <Heading title="When do you plan to go?" subtitle="Choose the months for your stay." />
+      <MonthSelect label="From" value={startMonth} onChange={setStartMonth} />
+      <MonthSelect label="To" value={endMonth} onChange={setEndMonth} />
+    </div>
+  );
+}
+
 
   if (step === STEPS.INFO) {
     bodyContent = (
@@ -174,6 +160,6 @@ const SearchModal = () => {
       body={bodyContent}
     />
   );
-}
+};
 
 export default SearchModal;

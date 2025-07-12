@@ -1,126 +1,131 @@
 'use client';
 
-import useCountries from "@/app/hooks/useCountries";
 import { SafeUser } from "@/app/types";
 import { IconType } from "react-icons";
 import Avatar from "../Avatar";
 import ListingCategory from "./ListingCategory";
 import dynamic from "next/dynamic";
 
-
 const Map = dynamic(() => import('../Map'), {
-    ssr: false
+  ssr: false
 });
 
-
 interface ListingInfoProps {
-    user: SafeUser
+  user: SafeUser;
+  description: string;
+  guestCount: number;
+  roomCount: number;
+  bathroomCount: number;
+  category: {
+    icon: IconType;
+    label: string;
     description: string;
-    guestCount: number;
-    roomCount: number;
-    bathroomCount: number;
-    category: {
-        icon: IconType;
-        label: string;
-        description: string;
-    } | undefined
-    locationValue: string;
+  }[];
+  universityName: string;
+  lat: number;
+  lng: number;
 }
 
-
-const ListingInfo: React.FC<ListingInfoProps>= ({
-    user,
-    description,
-    guestCount,
-    roomCount,
-    bathroomCount,
-    category,
-    locationValue
+const ListingInfo: React.FC<ListingInfoProps> = ({
+  user,
+  description,
+  guestCount,
+  roomCount,
+  bathroomCount,
+  category,
+  universityName,
+  lat,
+  lng
 }) => {
-    const { getByValue } = useCountries();
-
-    const coordinates = getByValue(locationValue)?.latlng;
-
-    return (
-     <div
+  return (
+    <div
       style={{
         gridColumn: 'span 4',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem' // gap-8 = 8 × 0.25rem = 2rem
+        gap: '2rem'
       }}
     >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem'
+        }}
+      >
+        <div
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <div>Hosted by {user?.name}</div>
+          <Avatar src={user?.image} />
+        </div>
 
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem' // gap-2 = 0.5rem
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '1rem',
+            fontWeight: 300,
+            color: '#737373'
           }}
         >
-
-            <div
-              style={{
-                fontSize: '1.25rem',     // text-xl = 20px
-                fontWeight: 600,         // font-semibold
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: '0.5rem'            // gap-2 = 0.5rem
-              }}
-            >
-                <div>Hosted by {user?.name}</div>
-                <Avatar src={user?.image}/>
-                
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: '1rem',            // gap-4 = 1rem (4 * 0.25rem)
-                fontWeight: 300,        // font-light
-                color: '#737373'        // text-neutral-500
-              }}
-            >
-                <div>
-                {guestCount} guests
-                </div>
-                <div>
-                {roomCount} rooms
-                </div>
-                <div>
-                {bathroomCount} bathrooms
-                </div>
-            </div>
+          <div>{guestCount} guests</div>
+          <div>{roomCount} rooms</div>
+          <div>{bathroomCount} bathrooms</div>
         </div>
-        <hr />
+      </div>
 
-        {category && (
+      <hr />
+
+      {/* Render all selected categories */}
+      {category.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {category.map((cat) => (
             <ListingCategory
-            icon={category.icon}
-            label={category.label}
-            description={category.description}
-            
+              key={cat.label}
+              icon={cat.icon}
+              label={cat.label}
+              description={cat.description}
             />
+          ))}
+        </div>
+      )}
 
-            )}
+      <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
 
-            <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
-            <div
-              style={{
-                fontSize: '1.125rem',     // text-lg = 18px
-                fontWeight: 300,          // font-light
-                color: '#737373'          // text-neutral-500
-              }}
-            >
-              {description}
-            </div>
-            <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
-            <Map center={coordinates} />
+      <div
+        style={{
+          fontSize: '1.125rem',
+          fontWeight: 300,
+          color: '#737373'
+        }}
+      >
+        {description}
+      </div>
 
-     </div>
-    );
-}
+      <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
+
+      <div
+        style={{
+          fontSize: '0.875rem',
+          fontStyle: 'italic',
+          color: '#6b7280'
+        }}
+      >
+        📍 Approximate location <strong>{universityName}</strong>
+      </div>
+
+      <Map center={[lat, lng]} />
+    </div>
+  );
+};
 
 export default ListingInfo;

@@ -1,6 +1,5 @@
 'use client';
 
-import useCountries from "@/app/hooks/useCountries";
 import { SafeListing, SafeReservation, SafeUser } from "@/app/types";
 
 import { useRouter } from "next/navigation";
@@ -30,9 +29,12 @@ const ListingCard: React.FC<ListingCardProps> = ({
     currentUser
 }) => {
     const router = useRouter();
-    const { getByValue } = useCountries();
+    
 
-    const location = getByValue(data.locationValue);
+    const addressParts = data.address.split(",");
+    const city = addressParts[1]?.trim() || "Unknown City";
+    const state = addressParts[2]?.trim() || "Unknown State";
+
 
     const handleCancel = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -54,16 +56,17 @@ const ListingCard: React.FC<ListingCardProps> = ({
     
     }, [reservation, data.price]);   
 
-    const reservationDate = useMemo(() => {
-        if (!reservation) {
-            return null;
-        }
+   const reservationDate = useMemo(() => {
+  if (!reservation?.startMonth || !reservation?.endMonth) {
+    return null;
+  }
 
-        const start = new Date(reservation.startDate);
-        const end = new Date(reservation.endDate);
-        
-        return `${format(start, 'PP')} - ${format(end, 'PP')}`
-    }, [reservation]);
+  const start = new Date(`${reservation.startMonth}-01`);
+  const end = new Date(`${reservation.endMonth}-01`);
+
+  return `${format(start, 'MMM yyyy')} - ${format(end, 'MMM yyyy')}`;
+}, [reservation]);
+
 
     return (
         <div
@@ -125,12 +128,14 @@ const ListingCard: React.FC<ListingCardProps> = ({
               </div>
             </div>
             <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>
-              {location?.region}, {location?.label}
+              {city}, {state}
             </div>
 
+
             <div style={{ fontWeight: 300, color: '#737373' }}>
-              {reservationDate || data.category}
-            </div>
+  {reservationDate || data.category?.join('; ')}
+</div>
+
 
             <div
               style={{

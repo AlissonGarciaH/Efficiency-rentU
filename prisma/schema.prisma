@@ -13,6 +13,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Message {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String   @db.ObjectId
+  receiverId String   @db.ObjectId
+  content    String
+  createdAt  DateTime @default(now())
+  listingId  String?  @db.ObjectId
+
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  listing    Listing? @relation(fields: [listingId], references: [id])
+}
+
 model User {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
   name           String?
@@ -24,28 +37,11 @@ model User {
   updatedAt      DateTime  @updatedAt
   favoriteIds    String[]  @db.ObjectId
 
-  accounts     Account[]
-  listings     Listing[]
-  reservations Reservation[]
-}
-
-model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.String
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+  accounts         Account[]
+  listings         Listing[]
+  reservations     Reservation[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
 }
 
 model Listing {
@@ -53,28 +49,53 @@ model Listing {
   title         String
   description   String
   imageSrc      String
+  imageGallery  String[]
   createdAt     DateTime @default(now())
-  category      String
+  category      String[]
   roomCount     Int
   bathroomCount Int
   guestCount    Int
-  locationValue String
+  address       String
+  lat           Float
+  lng           Float
   userId        String   @db.ObjectId
   price         Int
+  university    String?
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations Reservation[]
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations  Reservation[]
+  messages      Message[]
 }
 
 model Reservation {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
   listingId  String   @db.ObjectId
-  startDate  DateTime
-  endDate    DateTime
-  totalPrice Int
+  startMonth String
+  endMonth   String
+  totalPrice Int?
   createdAt  DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.String
+  access_token      String?  @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.String
+  session_state     String?
+  university        String?
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }

@@ -1,109 +1,106 @@
 'use client';
 
-import { Range } from 'react-date-range';
-import Calendar from '../inputs/Calendar';
+import { generateMonthOptions } from '@/constants/utils/monthOptions';
 import Button from '../Button';
 
+const monthOptions = generateMonthOptions(2024, 2030);
 
 interface ListingReservationProps {
-    price: number;
-    dateRange: Range;
-    totalPrice: number;
-    onChangeDate: (value: Range) => void;
-    onSubmit: () => void;
-    disabled?: boolean;
-    disabledDates: Date[]
+  price: number;
+  startMonth: string;
+  endMonth: string;
+  setStartMonth: (value: string) => void;
+  setEndMonth: (value: string) => void;
+  onSubmit: () => void;
+  disabled?: boolean;
 }
 
 const ListingReservation: React.FC<ListingReservationProps> = ({
-    price,
-    dateRange,
-    totalPrice,
-    onChangeDate,
-    onSubmit,
-    disabled,
-    disabledDates
-
+  price,
+  startMonth,
+  endMonth,
+  setStartMonth,
+  setEndMonth,
+  onSubmit,
+  disabled,
 }) => {
-    return (
+  return (
+    <div
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '0.75rem',
+        border: '1px solid #e5e7eb',
+        overflow: 'hidden',
+        padding: '1rem',
+      }}
+    >
       <div
         style={{
-          backgroundColor: 'white',             // bg-white
-          borderRadius: '0.75rem',              // rounded-xl = 12px
-          border: '1px solid #e5e7eb',          // border-[1px] border-neutral-200
-          overflow: 'hidden'                    // overflow-hidden
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.25rem',
+          marginBottom: '1rem',
         }}
       >
-        <div
-          style={{
-            display: 'flex',                    // flex
-            flexDirection: 'row',               // flex-row
-            alignItems: 'center',               // items-center
-            gap: '0.25rem',                     // gap-1 = 1 * 0.25rem
-            padding: '1rem'                     // p-4 = 4 * 0.25rem
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1.5rem',               // text-2xl = 24px
-              fontWeight: 600                   // font-semibold
-            }}
-          >
-            ${price}
-          </div>
-          <div
-            style={{
-              fontWeight: 300,             // font-light
-              color: '#525252'             // text-neutral-600
-            }}
-          >
-            month        
-          </div>
-
-
-        </div>
-        <hr/>
-        <Calendar        
-        value={dateRange}
-        disabledDates={disabledDates}
-        onChange={(value) => onChangeDate(value.selection)}
-        />
-        <hr  />
-
-        <div style={{ padding: '1rem' }}>
-
-            <Button
-            disabled={disabled}
-            label="Reserve"
-            onClick={onSubmit}
-            />
-
-        </div>
-
-        <div
-          style={{
-            padding: '1rem',              // p-4
-            display: 'flex',              // flex
-            flexDirection: 'row',         // flex-row
-            alignItems: 'center',         // items-center
-            justifyContent: 'space-between', // justify-between
-            fontWeight: 600,              // font-semibold
-            fontSize: '1.125rem'          // text-lg = 18px
-           }}
-             >
-          <div>
-            Total
-          </div>
-
-          <div>
-            ${totalPrice}
-          </div>
-        </div>
-
-
+        <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>${price}</div>
+        <div style={{ fontWeight: 300, color: '#525252' }}>month</div>
       </div>
 
-    );
-}
+      <label style={{ fontWeight: 500, marginBottom: '0.25rem' }}>From</label>
+      <select
+        value={startMonth}
+        onChange={(e) => setStartMonth(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '0.75rem 1rem',
+          fontSize: '1rem',
+          borderRadius: '0.5rem',
+          border: '1px solid #d1d5db',
+          backgroundColor: '#f9fafb',
+          color: '#111827',
+          marginBottom: '1rem',
+          outline: 'none',
+        }}
+      >
+        <option value="">Select month</option>
+        {monthOptions.map((month) => (
+          <option key={month.value} value={month.value}>
+            {month.label}
+          </option>
+        ))}
+      </select>
+
+      <label style={{ fontWeight: 500, marginBottom: '0.25rem' }}>To</label>
+      <select
+        value={endMonth}
+        onChange={(e) => setEndMonth(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '0.75rem 1rem',
+          fontSize: '1rem',
+          borderRadius: '0.5rem',
+          border: '1px solid #d1d5db',
+          backgroundColor: '#f9fafb',
+          color: '#111827',
+          marginBottom: '1rem',
+          outline: 'none',
+        }}
+      >
+        <option value="">Select month</option>
+        {monthOptions.map((month) => (
+          <option key={month.value} value={month.value}>
+            {month.label}
+          </option>
+        ))}
+      </select>
+
+      <Button
+        disabled={disabled || !startMonth || !endMonth}
+        label="Reserve"
+        onClick={onSubmit}
+      />
+    </div>
+  );
+};
 
 export default ListingReservation;

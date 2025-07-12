@@ -1,5 +1,6 @@
 'use client';
 
+import AddressAutocomplete from '../inputs/AddressAutocomplete';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
@@ -12,9 +13,10 @@ import Modal from './Modal';
 import Heading from '../Heading';
 import { categories } from '../Navbar/Categories';
 import CategoryInput from '../inputs/CategoryInput';
-import CountrySelect, { CountrySelectValue } from '../inputs/CountrySelect';
+import { CountrySelectValue } from '../inputs/CountrySelect';
 import Counter from '../inputs/Counter';
 import ImageUpload from '../inputs/ImageUpload';
+import MultiImageUpload from '../inputs/MultiImageUpload';
 import Input from '../inputs/Input';
 
 enum STEPS {
@@ -22,8 +24,9 @@ enum STEPS {
   LOCATION = 1,
   INFO = 2,
   IMAGES = 3,
-  DESCRIPTION = 4,
-  PRICE = 5,
+  GALLERY = 4,
+  DESCRIPTION = 5,
+  PRICE = 6,
 }
 
 const RentModal = () => {
@@ -42,44 +45,34 @@ const RentModal = () => {
     reset,
   } = useForm<FieldValues>({
     defaultValues: {
-      category: '',
-      location: null,
+      category: [],
+      location: {
+        address: '',
+        latlng: [0, 0],
+      },
       guestCount: 1,
       roomCount: 1,
       bathroomCount: 1,
       imageSrc: '',
+      imageGallery: [],
       price: 1,
       title: '',
       description: '',
     },
   });
 
-  /* -------------------------------------------------- */
-  /* watch helpers */
-  /* -------------------------------------------------- */
-
-  const category = watch('category');
+  const selectedCategories = watch('category') as string[];
   const location = watch('location') as CountrySelectValue | null;
   const guestCount = watch('guestCount') as number;
   const roomCount = watch('roomCount') as number;
   const bathroomCount = watch('bathroomCount') as number;
   const imageSrc = watch('imageSrc') as string;
-
-  /* -------------------------------------------------- */
-  /* lazy loaded map */
-  /* -------------------------------------------------- */
+  const imageGallery = watch('imageGallery') as string[];
 
   const Map = useMemo(
-    () =>
-      dynamic(() => import('../Map'), {
-        ssr: false,
-      }),
-    [], // location is already passed via props; no need in dep array
+    () => dynamic(() => import('../Map'), { ssr: false }),
+    []
   );
-
-  /* -------------------------------------------------- */
-  /* helpers */
-  /* -------------------------------------------------- */
 
   const setCustomValue = (id: string, value: unknown) => {
     setValue(id, value, {
@@ -89,12 +82,15 @@ const RentModal = () => {
     });
   };
 
+  const toggleCategory = (cat: string) => {
+    const updated = selectedCategories.includes(cat)
+      ? selectedCategories.filter((c) => c !== cat)
+      : [...selectedCategories, cat];
+    setCustomValue('category', updated);
+  };
+
   const onBack = () => setStep((v) => v - 1);
   const onNext = () => setStep((v) => v + 1);
-
-  /* -------------------------------------------------- */
-  /* submit */
-  /* -------------------------------------------------- */
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     if (step !== STEPS.PRICE) {
@@ -117,30 +113,21 @@ const RentModal = () => {
       .finally(() => setIsLoading(false));
   };
 
-  /* -------------------------------------------------- */
-  /* labels */
-  /* -------------------------------------------------- */
-
   const actionLabel = step === STEPS.PRICE ? 'Create' : 'Next';
   const secondaryActionLabel = step === STEPS.CATEGORY ? undefined : 'Back';
 
-  /* -------------------------------------------------- */
-  /* body (per-step) */
-  /* -------------------------------------------------- */
-
   let bodyContent: React.ReactNode = (
-    /* CATEGORY */
     <div className="modal-content">
       <Heading
         title="Which of these best describe your place?"
-        subtitle="Pick a category"
+        subtitle="Pick one or more categories"
       />
       <div className="grid-wrapper">
         {categories.map((item) => (
           <div key={item.label} style={{ gridColumn: 'span 1' }}>
             <CategoryInput
-              onClick={(cat) => setCustomValue('category', cat)}
-              selected={category === item.label}
+              onClick={toggleCategory}
+              selected={selectedCategories.includes(item.label)}
               label={item.label}
               icon={item.icon}
             />
@@ -153,16 +140,12 @@ const RentModal = () => {
   if (step === STEPS.LOCATION) {
     bodyContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="Where is your place located?"
-          subtitle="Help students find you!"
+        <Heading title="Where is your place located?" subtitle="Help students find you!" />
+        <AddressAutocomplete
+          onSelect={({ address, lat, lng }) => {
+            setCustomValue('location', { address, latlng: [lat, lng] });
+          }}
         />
-
-        <CountrySelect
-          value={location || undefined}
-          onChange={(val) => setCustomValue('location', val)}
-        />
-
         <Map center={location?.latlng} />
       </div>
     );
@@ -171,29 +154,21 @@ const RentModal = () => {
   if (step === STEPS.INFO) {
     bodyContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="Share some basics about your place"
-          subtitle="What amenities do you have?"
-        />
-
+        <Heading title="Share some basics about your place" subtitle="What amenities do you have?" />
         <Counter
           title="Students"
           subtitle="How many students do you allow?"
           value={guestCount}
           onChange={(val) => setCustomValue('guestCount', val)}
         />
-
-        <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
-
+        <hr />
         <Counter
           title="Rooms"
           subtitle="How many rooms do you have?"
           value={roomCount}
           onChange={(val) => setCustomValue('roomCount', val)}
         />
-
-        <hr style={{ borderColor: '#e5e7eb', borderTopWidth: '1px' }} />
-
+        <hr />
         <Counter
           title="Bathrooms"
           subtitle="How many bathrooms do you have?"
@@ -207,13 +182,19 @@ const RentModal = () => {
   if (step === STEPS.IMAGES) {
     bodyContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="Add a photo of your place"
-          subtitle="Show students what your place looks like!"
-        />
-        <ImageUpload
-          value={imageSrc}
-          onChange={(val) => setCustomValue('imageSrc', val)}
+        <Heading title="Add a main photo of your place" subtitle="This will be the thumbnail students see first." />
+        <ImageUpload value={imageSrc} onChange={(val) => setCustomValue('imageSrc', val)} />
+      </div>
+    );
+  }
+
+  if (step === STEPS.GALLERY) {
+    bodyContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <Heading title="Add more photos" subtitle="Give students a better view of your place." />
+        <MultiImageUpload
+          value={imageGallery}
+          onChange={(val) => setCustomValue('imageGallery', val)}
         />
       </div>
     );
@@ -222,30 +203,10 @@ const RentModal = () => {
   if (step === STEPS.DESCRIPTION) {
     bodyContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="How would you like to describe your place?"
-          subtitle="Short and sweet works best!"
-        />
-
-        <Input
-          id="title"
-          label="Title"
-          disabled={isLoading}
-          register={register}
-          errors={errors}
-          required
-        />
-
+        <Heading title="Describe your place" subtitle="Short and sweet works best!" />
+        <Input id="title" label="Title" disabled={isLoading} register={register} errors={errors} required />
         <hr />
-
-        <Input
-          id="description"
-          label="Description"
-          disabled={isLoading}
-          register={register}
-          errors={errors}
-          required
-        />
+        <Input id="description" label="Description" disabled={isLoading} register={register} errors={errors} required />
       </div>
     );
   }
@@ -253,11 +214,7 @@ const RentModal = () => {
   if (step === STEPS.PRICE) {
     bodyContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <Heading
-          title="Now, set your price"
-          subtitle="How much do you charge per month?"
-        />
-
+        <Heading title="Set your price" subtitle="How much do you charge per month?" />
         <Input
           id="price"
           label="Price"
@@ -288,3 +245,4 @@ const RentModal = () => {
 };
 
 export default RentModal;
+

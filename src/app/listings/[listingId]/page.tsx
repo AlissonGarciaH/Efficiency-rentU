@@ -1,4 +1,3 @@
-// src/app/listings/[listingId]/page.tsx
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReservations from "@/app/actions/getReservations";
@@ -7,14 +6,12 @@ import EmptyState from "@/app/component/EmptyState";
 import ListingClient from "./ListingClient";
 import type { SafeUser } from "@/app/types";
 
-type PageContext = {
-  // 👇 params arrives as a Promise in App Router
-  params: Promise<{ listingId: string }>;
+type PageProps = {
+  params: Promise<{ listingId: string }>; // must await this!
 };
 
-const ListingPage = async ({ params }: PageContext) => {
-  /* --- MUST await params before you use it --- */
-  const { listingId } = await params;
+const ListingPage = async ({ params }: PageProps) => {
+  const { listingId } = await params; // ✅ await here
 
   if (!listingId) {
     return (
@@ -24,8 +21,8 @@ const ListingPage = async ({ params }: PageContext) => {
     );
   }
 
-  const listing        = await getListingById({ listingId });
-  const reservations   = await getReservations({ listingId });
+  const listing = await getListingById(listingId);
+  const reservations = await getReservations({ listingId });
   const currentUser: SafeUser | null = await getCurrentUser();
 
   if (!listing) {

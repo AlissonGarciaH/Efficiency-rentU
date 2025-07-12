@@ -1,69 +1,40 @@
 'use client';
 
+import { UNIVERSITIES } from '@/constants/universities';
 import Container from '@/app/component/Container';
-import ListingHead from '@/app/component/listings/ListingHead';
 import ListingInfo from '@/app/component/listings/ListingInfo';
 import ListingReservation from '@/app/component/listings/ListingReservation';
+import ListingGallery from '@/app/component/listings/GallerySlider';
 import { categories } from '@/app/component/Navbar/Categories';
 import useLoginModal from '@/app/hooks/useLoginModal';
 import { SafeListing, SafeReservation, SafeUser } from '@/app/types';
+import ListingMessagesButton from '@/app/component/listings/ListingMessagesButton';
 
 import axios from 'axios';
-import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Range } from 'react-date-range';
+import { useCallback, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-
-const initialDateRange: Range = {
-  startDate: new Date(),
-  endDate: new Date(),
-  key: 'selection',
-};
+import Link from 'next/link';
 
 interface ListingClientProps {
-  reservations?: SafeReservation[];
   listing: SafeListing & {
     user: SafeUser;
   };
+  reservations?: SafeReservation[];
   currentUser?: SafeUser | null;
 }
 
 const ListingClient: React.FC<ListingClientProps> = ({
   listing,
-  reservations = [],
   currentUser,
 }) => {
   const loginModal = useLoginModal();
   const router = useRouter();
 
-  /* ------------------------------------------------------------------ */
-  /* Disabled-dates logic                                               */
-  /* ------------------------------------------------------------------ */
-  const disabledDates = useMemo<Date[]>(() => {
-    let dates: Date[] = [];
-
-    reservations.forEach((reservation) => {
-      const range = eachDayOfInterval({
-        start: new Date(reservation.startDate),
-        end: new Date(reservation.endDate),
-      });
-      dates = [...dates, ...range];
-    });
-
-    return dates;
-  }, [reservations]);
-
-  /* ------------------------------------------------------------------ */
-  /* State management                                                   */
-  /* ------------------------------------------------------------------ */
   const [isLoading, setIsLoading] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(listing.price);
-  const [dateRange, setDateRange] = useState<Range>(initialDateRange);
+  const [startMonth, setStartMonth] = useState('');
+  const [endMonth, setEndMonth] = useState('');
 
-  /* ------------------------------------------------------------------ */
-  /* Reservation creation                                               */
-  /* ------------------------------------------------------------------ */
   const onCreateReservation = useCallback(() => {
     if (!currentUser) {
       return loginModal.onOpen();
@@ -73,14 +44,14 @@ const ListingClient: React.FC<ListingClientProps> = ({
 
     axios
       .post('/api/reservations', {
-        totalPrice,
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
         listingId: listing.id,
+        startMonth,
+        endMonth,
       })
       .then(() => {
         toast.success('Listing reserved!');
-        setDateRange(initialDateRange);
+        setStartMonth('');
+        setEndMonth('');
         router.push('/trips');
       })
       .catch(() => {
@@ -89,63 +60,50 @@ const ListingClient: React.FC<ListingClientProps> = ({
       .finally(() => {
         setIsLoading(false);
       });
-  }, [currentUser, dateRange, listing.id, loginModal, router, totalPrice]);
+  }, [currentUser, listing.id, loginModal, router, startMonth, endMonth]);
 
-  /* ------------------------------------------------------------------ */
-  /* Dynamically keep total price in sync                               */
-  /* ------------------------------------------------------------------ */
-  useEffect(() => {
-    if (dateRange.startDate && dateRange.endDate) {
-      const dayCount = differenceInCalendarDays(
-        dateRange.endDate,
-        dateRange.startDate
-      );
-
-      if (dayCount && listing.price) {
-        setTotalPrice(dayCount * listing.price);
-      } else {
-        setTotalPrice(listing.price);
-      }
-    }
-  }, [dateRange, listing.price]);
-
-  /* ------------------------------------------------------------------ */
-  /* Resolve category descriptor                                        */
-  /* ------------------------------------------------------------------ */
-  const category = useMemo(() => {
-    return categories.find(
-      (item: { label: string }) => item.label === listing.category
+  const matchedCategories = useMemo(() => {
+    return categories.filter((item) =>
+      listing.category?.includes(item.label)
     );
   }, [listing.category]);
 
-  /* ------------------------------------------------------------------ */
-  /* Render                                                              */
-  /* ------------------------------------------------------------------ */
+  const universityName = useMemo(() => {
+    if (!listing.university) return '';
+    const uni = UNIVERSITIES.find((u) => u.id === listing.university);
+    return uni ? `near ${uni.name}` : '';
+  }, [listing.university]);
+
   return (
     <Container>
       <div style={{ maxWidth: '1024px', marginLeft: 'auto', marginRight: 'auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <ListingHead
-            title={listing.title}
-            imageSrc={listing.imageSrc}
-            locationValue={listing.locationValue}
-            id={listing.id}
-            currentUser={currentUser}
+          <h1 style={{
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            marginBottom: '1rem'
+          }}>
+            {listing.title}
+          </h1>
+
+          <ListingGallery
+            mainImage={listing.imageSrc}
+            galleryImages={listing.imageGallery}
           />
 
           <div className="listing-details-grid">
-            {/* ---------- Listing Information ---------- */}
             <ListingInfo
               user={listing.user}
-              category={category}
+              category={matchedCategories}
               description={listing.description}
               roomCount={listing.roomCount}
               guestCount={listing.guestCount}
               bathroomCount={listing.bathroomCount}
-              locationValue={listing.locationValue}
+              universityName={universityName}
+              lat={listing.lat}
+              lng={listing.lng}
             />
 
-            {/* ---------- Reservation Box (right column on md+) ---------- */}
             <div
               style={{
                 order: 1,
@@ -156,15 +114,38 @@ const ListingClient: React.FC<ListingClientProps> = ({
             >
               <ListingReservation
                 price={listing.price}
-                totalPrice={totalPrice}
-                onChangeDate={(value) => setDateRange(value)}
-                dateRange={dateRange}
+                startMonth={startMonth}
+                endMonth={endMonth}
+                setStartMonth={setStartMonth}
+                setEndMonth={setEndMonth}
                 onSubmit={onCreateReservation}
                 disabled={isLoading}
-                disabledDates={disabledDates}
               />
             </div>
           </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
+            <ListingMessagesButton listingId={listing.id} listingOwnerId={listing.user.id} />
+          </div>
+
+          {currentUser?.id !== listing.user.id && (
+            <div style={{ marginTop: '1rem' }}>
+              <Link href={`/messages/${listing.user.id}?listingId=${listing.id}`}>
+                <button
+                  style={{
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Message Host
+                </button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </Container>

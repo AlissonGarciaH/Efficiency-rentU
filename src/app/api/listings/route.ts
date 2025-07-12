@@ -10,7 +10,21 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
+
   const {
+    title,
+    description,
+    imageSrc,
+    imageGallery = [], // ✅ NEW: receive gallery
+    category, // ✅ string[]
+    roomCount,
+    bathroomCount,
+    guestCount,
+    location,
+    price,
+  } = body;
+
+  const requiredFields = {
     title,
     description,
     imageSrc,
@@ -20,11 +34,16 @@ export async function POST(request: Request) {
     guestCount,
     location,
     price,
-  } = body;
+  };
 
-  for (const key of Object.keys(body) as Array<keyof typeof body>) {
-    if (!body[key]) {
-      return NextResponse.error(); // ✅ return here so the error is triggered
+  for (const [key, value] of Object.entries(requiredFields)) {
+    if (
+      value === undefined ||
+      value === null ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      console.error(`Missing or empty field: ${key}`);
+      return new NextResponse(`Missing or invalid field: ${key}`, { status: 400 });
     }
   }
 
@@ -33,11 +52,14 @@ export async function POST(request: Request) {
       title,
       description,
       imageSrc,
+      imageGallery, // ✅ SAVE IMAGE GALLERY TO DB
       category,
       roomCount,
       bathroomCount,
       guestCount,
-      locationValue: location.value,
+      address: location.address,
+      lat: location.latlng[0],
+      lng: location.latlng[1],
       price: parseInt(price, 10),
       userId: currentUser.id,
     },
